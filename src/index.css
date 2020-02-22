@@ -2,3 +2,16 @@ body {
   margin: 0;
 }
 
+.canvasContainer {
+  text-align: center;
+  border: 10px solid #000000;
+  margin: 10px auto 10px auto;
+  padding: 0;
+  width: 800px;
+  height: 600px;
+}
+
+.canvas {
+  background-color: white;
+  cursor: none;
+}
