@@ -4,11 +4,11 @@ import { ServerMsg, ClientMsg, IPlayersList } from '../Types';
 import webSocket from './WebSocket';
 import Player from './Player/Player';
 import MainPlayer from './Player/MainPlayer';
-import Circles from './Circles';
+import Clicks from './Clicks';
 
 class Game {
     public mainPlayer: MainPlayer = new MainPlayer();
-    public circles: Circles = new Circles();
+    public clicks: Clicks = new Clicks();
     public context!: CanvasRenderingContext2D;
 
     private reqAnimFrame: number = 0;
@@ -84,7 +84,7 @@ class Game {
             delete this.playersList[id];
         }
 
-        this.circles.Read(reader);
+        this.clicks.Read(reader);
 
         this.playersOnline = reader.readU(16);
     }
@@ -111,12 +111,12 @@ class Game {
 
             this.SendMousePos();
         } else if (
-            this.circles.check &&
+            this.clicks.check &&
             this.mainPlayer.posXghost === this.mainPlayer.posXplayer &&
             this.mainPlayer.posYghost === this.mainPlayer.posYplayer
         ) {
-            this.circles.Add(this.mainPlayer.posXplayer, this.mainPlayer.posYghost);
-            this.SendClick(this.mainPlayer.posXplayer, this.mainPlayer.posYghost);
+            this.clicks.Add(this.mainPlayer.posXplayer, this.mainPlayer.posYplayer);
+            this.SendClick(this.mainPlayer.posXplayer, this.mainPlayer.posYplayer);
         }
     };
 
@@ -164,7 +164,7 @@ class Game {
             c.font = '45px GGAM';
             c.fillText(text, 400 - c.measureText(text).width / 2, 315);
 
-            this.circles.Draw(c);
+            this.clicks.Draw(c);
             this.mainPlayer.Draw(c, false);
         } else {
             c.fillStyle = "#000000";
@@ -187,7 +187,7 @@ class Game {
                 c.fillText(tempText, 790 - offsetX, 590);
             }
 
-            this.circles.Draw(c);
+            this.clicks.Draw(c);
             Player.Draw(c, this.playersList);
             this.mainPlayer.Draw(c);
         }
