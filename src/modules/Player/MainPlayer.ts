@@ -1,7 +1,7 @@
 import { BufferWriter } from '../../tools/Buffer';
 import { ClientMsg } from '../../Types';
 import game from '../Game';
-import { normalizePosition } from './Player';
+import { normalizePosition, checkPos, CursorDraw } from './Player';
 
 export default class MainPlayer {
     public PlayerID: number = -1;
@@ -53,15 +53,27 @@ export default class MainPlayer {
     }
 
     CursorMove() {
+        const lastX = this.posXplayer;
+        const lastY = this.posYplayer;
+
         if (this.posXplayer !== this.posXghost || this.posYplayer !== this.posYghost) {
             const { x, y } = normalizePosition(this.posXplayer, this.posYplayer, this.posXghost, this.posYghost);
             this.posXplayer = x;
             this.posYplayer = y;
         }
+
+        if (
+            checkPos(this.posXserver, this.posYserver, lastX, lastY) &&
+            !checkPos(this.posXserver, this.posYserver, this.posXplayer, this.posYplayer)
+        ) {
+            this.SendMousePos(lastX, lastY);
+            this.SendMousePos(this.posXplayer, this.posYplayer);
+            console.log('Triggered WH');
+        }
     }
 
     Draw(c: CanvasRenderingContext2D, drawAreaGlow: boolean = true) {
-        const { posXplayer, posYplayer } = this;
+        const [x, y] = [this.posXplayer << 1, this.posYplayer << 1];
 
         c.save();
 
@@ -69,12 +81,12 @@ export default class MainPlayer {
             c.globalAlpha = 0.2;
             c.fillStyle = '#FFFF00';
             c.beginPath();
-            c.arc((posXplayer << 1) + 2, (posYplayer << 1) + 8, 20, 0, 2 * Math.PI, false);
+            c.arc(x + 2, y + 8, 20, 0, 2 * Math.PI, false);
             c.fill();
         }
 
         c.globalAlpha = 1;
-        c.drawImage(game.CursorIMG, (posXplayer << 1) - 5, (posYplayer << 1) - 5, 23, 30);
+        new CursorDraw({ x, y }, 'white').Draw(c);
 
         c.restore();
     }

@@ -4,13 +4,11 @@ import { ServerMsg, ClientMsg, IPlayersList } from '../Types';
 import webSocket from './WebSocket';
 import Player from './Player/Player';
 import MainPlayer from './Player/MainPlayer';
-import CursorSRC from './Player/cursor.png';
 import Circles from './Circles';
 
 class Game {
     public mainPlayer: MainPlayer = new MainPlayer();
     public circles: Circles = new Circles();
-    public CursorIMG: HTMLImageElement = new Image();
     public context!: CanvasRenderingContext2D;
 
     private reqAnimFrame: number = 0;
@@ -22,9 +20,6 @@ class Game {
     public sync: number = 0;
     public isStartedGame: boolean = false;
 
-    constructor() {
-        this.CursorIMG.src = CursorSRC;
-    }
 
     Send(data: ArrayBuffer) {
         webSocket.Send(data);
@@ -66,17 +61,21 @@ class Game {
         for (let i = 0; i < pCount; i++) {
             const id = reader.readU(32);
             const pos = { x: reader.readU(16), y: reader.readU(16) };
-            
-            if(this.mainPlayer.PlayerID !== id) {
-                if(this.playersList[id]) {
+            const color = `#${reader
+                .readU(32)
+                .toString(16)
+                .padStart(6, '0')}`;
+
+            if (this.mainPlayer.PlayerID !== id) {
+                if (this.playersList[id]) {
                     // TODO: correct this ↓
                     playerIDs = playerIDs.filter(e => e !== id);
 
                     const player = this.playersList[id];
                     player.UpdatePos(pos);
-                }
-                else {
-                    this.playersList[id] = new Player(pos, id);
+                    player.color = color;
+                } else {
+                    this.playersList[id] = new Player(pos, id, color);
                 }
             }
         }
@@ -140,11 +139,11 @@ class Game {
 
     RenderFrame() {
         this.frameTick = Date.now();
-        if(this.frameTick - this.posTick > 50) {
+        if (this.frameTick - this.posTick > 50) {
             this.posTick = this.frameTick;
             this.SendMousePos();
         }
-        
+
         const c = this.context;
         if (!c) return;
 
@@ -168,6 +167,14 @@ class Game {
             this.circles.Draw(c);
             this.mainPlayer.Draw(c, false);
         } else {
+            c.fillStyle = "#000000";
+            c.save();
+            c.globalAlpha = 1;
+            
+            // TODO: Draw objects
+
+		    c.restore();
+
             let tempText = '';
             if (this.playersOnline > 0) {
                 tempText = 'Online: ' + this.playersOnline;
