@@ -1,4 +1,5 @@
 import { BufferReader } from '../tools/Buffer';
+import game from './Game';
 
 type ICircles = [number, number, number];
 type IRemoteCircles = [number, number];
@@ -6,15 +7,14 @@ type IRemoteCircles = [number, number];
 export default class Circles {
     private points: Array<ICircles> = [];
     private remote: Array<IRemoteCircles> = [];
-    public tick: number = Date.now();
-    public lastTime: number = 0;
+    private tick: number = 0;
 
     Add(x: number, y: number, e: boolean = true) {
         if (e) {
-            this.lastTime = this.tick;
+            this.tick = game.frameTick;
         }
 
-        this.points.push([x, y, this.tick]);
+        this.points.push([x, y, game.frameTick]);
         const temp: IRemoteCircles = [x, y];
         this.remote.push(temp);
         setInterval(() => {
@@ -25,18 +25,17 @@ export default class Circles {
     }
 
     public get check() {
-        return this.tick - this.lastTime > 100;
+        return game.frameTick - this.tick > 100;
     }
 
     public Draw(c: CanvasRenderingContext2D) {
         c.save();
         c.strokeStyle = '#000000';
-        this.tick = Date.now();
 
         for (const point of this.points) {
             const [x, y, time] = point;
 
-            let radius = (this.tick - time) / 1e3;
+            let radius = (game.frameTick - time) / 1e3;
             let alpha = 1 - 2 * radius;
 
             if (alpha <= 0) {
@@ -69,7 +68,7 @@ export default class Circles {
                     }
                 }
 
-                this.points.push([x, y, this.tick]);
+                this.points.push([x, y, game.frameTick]);
             }
         }, 100);
     }

@@ -1,7 +1,8 @@
 import { ICloseEvent } from 'websocket';
 import { BufferReader, BufferWriter } from '../tools/Buffer';
-import { ServerMsg, ClientMsg } from '../Types';
+import { ServerMsg, ClientMsg, IPlayersList } from '../Types';
 import webSocket from './WebSocket';
+import Player from './Player/Player';
 import MainPlayer from './Player/MainPlayer';
 import CursorSRC from './Player/cursor.png';
 import Circles from './Circles';
@@ -13,9 +14,12 @@ class Game {
     public context!: CanvasRenderingContext2D;
 
     private reqAnimFrame: number = 0;
+    public frameTick: number = Date.now();
+    public posTick: number = 0;
 
-    public playersCount: number = 0;
-    public ttl: number = 0;
+    public playersOnline: number = 0;
+    public playersList: IPlayersList = {};
+    public sync: number = 0;
     public isStartedGame: boolean = false;
 
     constructor() {
@@ -37,19 +41,54 @@ class Game {
     OnMessage = (data: ArrayBuffer) => {
         const reader = new BufferReader(data);
         const type = reader.readU();
-        console.log('Msg type:', type);
 
         switch (type) {
             case ServerMsg.SET_CLIENT_ID:
                 this.mainPlayer.SetID(reader.readU(32));
                 break;
-            case ServerMsg.UPDATE_DATA:
-                this.playersCount = reader.readU16();
 
-                this.circles.Read(reader);
+            case ServerMsg.UPDATE_DATA:
+                this.OnUpdateData(reader);
+                break;
+
+            case ServerMsg.TELEPORT_CLIENT:
+                this.mainPlayer.SetMainPosition(reader.readU(16), reader.readU(16));
+                this.sync = reader.readU(32);
                 break;
         }
     };
+
+    OnUpdateData(reader: BufferReader) {
+        const pCount = reader.readU(16);
+
+        let playerIDs = Object.keys(this.playersList).map(Number);
+
+        for (let i = 0; i < pCount; i++) {
+            const id = reader.readU(32);
+            const pos = { x: reader.readU(16), y: reader.readU(16) };
+            
+            if(this.mainPlayer.PlayerID !== id) {
+                if(this.playersList[id]) {
+                    // TODO: correct this ↓
+                    playerIDs = playerIDs.filter(e => e !== id);
+
+                    const player = this.playersList[id];
+                    player.UpdatePos(pos);
+                }
+                else {
+                    this.playersList[id] = new Player(pos, id);
+                }
+            }
+        }
+
+        for (const id of playerIDs) {
+            delete this.playersList[id];
+        }
+
+        this.circles.Read(reader);
+
+        this.playersOnline = reader.readU(16);
+    }
 
     OnMouseMove = (e: MouseEvent) => {
         const { offsetX, offsetY } = e;
@@ -80,13 +119,6 @@ class Game {
             this.circles.Add(this.mainPlayer.posXplayer, this.mainPlayer.posYghost);
             this.SendClick(this.mainPlayer.posXplayer, this.mainPlayer.posYghost);
         }
-
-        console.log(
-            this.circles.check,
-            [this.mainPlayer.posXplayer, this.mainPlayer.posYplayer],
-            [this.mainPlayer.posXghost, this.mainPlayer.posYghost]
-        );
-        
     };
 
     SetContext(context: CanvasRenderingContext2D) {
@@ -107,6 +139,12 @@ class Game {
     }
 
     RenderFrame() {
+        this.frameTick = Date.now();
+        if(this.frameTick - this.posTick > 50) {
+            this.posTick = this.frameTick;
+            this.SendMousePos();
+        }
+        
         const c = this.context;
         if (!c) return;
 
@@ -127,11 +165,12 @@ class Game {
             c.font = '45px GGAM';
             c.fillText(text, 400 - c.measureText(text).width / 2, 315);
 
+            this.circles.Draw(c);
             this.mainPlayer.Draw(c, false);
         } else {
             let tempText = '';
-            if (this.playersCount > 0) {
-                tempText = 'Online: ' + this.playersCount;
+            if (this.playersOnline > 0) {
+                tempText = 'Online: ' + this.playersOnline;
                 const offsetX = c.measureText(tempText).width;
 
                 c.globalAlpha = 0.5;
@@ -141,10 +180,10 @@ class Game {
                 c.fillText(tempText, 790 - offsetX, 590);
             }
 
+            this.circles.Draw(c);
+            Player.Draw(c, this.playersList);
             this.mainPlayer.Draw(c);
         }
-
-        this.circles.Draw(c);
 
         c.restore();
         this.reqAnimFrame = requestAnimationFrame(() => this.RenderFrame());
@@ -156,7 +195,7 @@ class Game {
     }
 
     SendClick(x: number, y: number) {
-        const fastBuff = BufferWriter.fast([[ClientMsg.CLICK], [x, 16], [y, 16], [this.ttl, 32]]);
+        const fastBuff = BufferWriter.fast([[ClientMsg.CLICK], [x, 16], [y, 16], [this.sync, 32]]);
         this.Send(fastBuff);
     }
 }

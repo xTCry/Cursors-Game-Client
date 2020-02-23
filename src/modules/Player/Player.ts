@@ -1,6 +1,47 @@
 import game from '../Game';
+import { Point, IPlayersList } from '../../Types';
 
-export default class Playerr {}
+export default class Player {
+    public PlayerID: number;
+    private _pos: Point;
+    private _posLast: Point;
+    private tick: number = 0;
+
+    constructor(pos: Point, id: number) {
+        this._pos = this._posLast = pos;
+        this.PlayerID = id;
+    }
+
+    public UpdatePos(pos: Point) {
+        this._posLast = this.SmoothPos();
+        this._pos = pos;
+        this.tick = game.frameTick;
+    }
+
+    public SmoothPos(): Point {
+        let deltaTime = (game.frameTick - this.tick) / 120;
+        deltaTime = Linear(deltaTime < 0 ? 0 : deltaTime > 1 ? 1 : deltaTime);
+        
+        return {
+            x: this._posLast.x + (this._pos.x - this._posLast.x) * deltaTime,
+            y: this._posLast.y + (this._pos.y - this._posLast.y) * deltaTime,
+        };
+    }
+
+    public static Draw(c: CanvasRenderingContext2D, playersList: IPlayersList) {
+        for (const i in playersList) {
+            if (playersList.hasOwnProperty(i)) {
+                const player = playersList[i];
+                const { x, y } = player.SmoothPos();
+                c.drawImage(game.CursorIMG, (x << 1) - 6, (y << 1) - 6, 23, 30);
+            }
+        }
+    }
+}
+
+function Linear(a: number): number {
+    return a * a * (3 - 2 * a);
+}
 
 export function checkCollision(x: number, y: number) {
     if (!game.isStartedGame) return false;

@@ -9,11 +9,11 @@ export default class MainPlayer {
     // Full: 0...800, 0...600
     public posXlocal: number = 0;
     public posYlocal: number = 0;
-    
+
     // Half: 0...400, 0...300
     public posXplayer: number = 0;
     public posYplayer: number = 0;
-    
+
     // Ghost position. Half: 0...400, 0...300
     public posXghost: number = 0;
     public posYghost: number = 0;
@@ -43,7 +43,7 @@ export default class MainPlayer {
 
     SendMousePos(x: number = this.posXplayer, y: number = this.posYplayer) {
         if (x !== this.posXserver || y !== this.posYserver) {
-            const fastBuff = BufferWriter.fast([[ClientMsg.MOVE], [x, 16], [y, 16], [game.ttl, 32]]);
+            const fastBuff = BufferWriter.fast([[ClientMsg.MOVE], [x, 16], [y, 16], [game.sync, 32]]);
 
             game.Send(fastBuff);
 
