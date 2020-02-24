@@ -3,6 +3,7 @@ import Player from './modules/Player/Player';
 export enum ClientMsg {
     MOVE = 1,
     CLICK = 2,
+    DRAW = 3
 }
 
 export enum ServerMsg {

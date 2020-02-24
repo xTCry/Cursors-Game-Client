@@ -40,7 +40,7 @@ export default class Level {
         for (let i = 0; i < countRemoved; i++) {
             const id = reader.readU(32);
 
-            RWL: for (const obj of this.gameObjects) {
+            for (const obj of this.gameObjects) {
                 if (obj.id === id) {
                     if (obj.type === EGameObjectType.WALL) {
                         const wallObj = obj as WallObject;
@@ -51,7 +51,7 @@ export default class Level {
                     }
 
                     this.gameObjects.splice(this.gameObjects.indexOf(obj), 1);
-                    break RWL;
+                    break;
                 }
             }
         }

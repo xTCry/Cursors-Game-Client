@@ -5,6 +5,7 @@ import { normalizePosition, checkPos, CursorDraw } from './Player';
 
 export default class MainPlayer {
     public PlayerID: number = -1;
+    public color: string = 'white';
 
     // Full: 0...800, 0...600
     public posXlocal: number = 0;
@@ -22,8 +23,9 @@ export default class MainPlayer {
     public posXserver: number = -1;
     public posYserver: number = -1;
 
-    SetID(id: number) {
+    SetID(id: number, color: string = 'white') {
         this.PlayerID = id;
+        this.color = color;
         console.log('New PlayerID:', this.PlayerID);
     }
 
