@@ -18,9 +18,10 @@ class Game {
 
     private reqAnimFrame: number = 0;
     public frameTick: number = Date.now();
-    public posTick: number = 0;
+    private _posTick: number = 0;
 
     public playersOnline: number = 0;
+    public countPlayerInLevel: number = 0;
     public playersList: IPlayersList = {};
     public sync: number = 0;
     public isStartedGame: boolean = false;
@@ -62,7 +63,7 @@ class Game {
     };
 
     OnUpdateData(reader: BufferReader) {
-        const pCount = reader.readU(16);
+        const pCount = (this.countPlayerInLevel = reader.readU(16));
 
         let playersID = Object.keys(this.playersList).map(Number);
         for (let i = 0; i < pCount; i++) {
@@ -168,8 +169,8 @@ class Game {
 
     RenderFrame() {
         this.frameTick = Date.now();
-        if (this.frameTick - this.posTick > 50) {
-            this.posTick = this.frameTick;
+        if (this.frameTick - this._posTick > 50) {
+            this._posTick = this.frameTick;
             this.SendMousePos();
         }
 
@@ -200,7 +201,24 @@ class Game {
 
             this.level.Draw(c);
 
+            c.font = '12px PANEM';
+            c.strokeStyle = '#000000';
+            c.fillStyle = '#FFFFFF';
+            c.lineWidth = 2.5;
+
             let tempText = '';
+            tempText =
+                this.countPlayerInLevel >= 100
+                    ? 'Area too full, not all cursors are shown'
+                    : this.countPlayerInLevel > 30
+                    ? 'Area too full, drawing is disabled'
+                    : 'Use Shift+click to draw';
+
+            c.globalAlpha = 0.5;
+            c.strokeText(tempText, 10, 590);
+            c.globalAlpha = 1;
+            c.fillText(tempText, 10, 590);
+
             if (this.playersOnline > 0) {
                 tempText = 'Online: ' + this.playersOnline;
                 const offsetX = c.measureText(tempText).width;
@@ -214,7 +232,7 @@ class Game {
 
             this.clicks.Draw(c);
             this.lines.Draw(c);
-            
+
             Player.Draw(c, this.playersList);
             this.mainPlayer.Draw(c);
         }

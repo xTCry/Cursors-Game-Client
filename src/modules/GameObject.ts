@@ -296,14 +296,6 @@ export class ButtonObject extends GameObject {
         c.fillStyle = '#000000';
         c.globalAlpha = 0.5;
 
-        if (40 > this.size.x || 40 > this.size.y) {
-            c.font = '30px GGAM';
-            c.fillText(text, x + w / 2 - c.measureText(text).width / 2, y + h / 2 + 10);
-        } else {
-            c.font = '60px GGAM';
-            c.fillText(text, x + w / 2 - c.measureText(text).width / 2, y + h / 2 + 20);
-        }
-
         if (50 > this.size.x || 50 > this.size.y) {
             c.font = '35px GGAM';
             c.fillText(text, x + w / 2 - c.measureText(text).width / 2, y + h / 2 + 13);
