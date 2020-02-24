@@ -7,11 +7,13 @@ import MainPlayer from './Player/MainPlayer';
 import Clicks from './Clicks';
 import Level from './Level';
 import { isOldClient } from '../tools/Helpers';
+import Lines from './Lines';
 
 class Game {
     public mainPlayer: MainPlayer = new MainPlayer();
     public level: Level = new Level();
     public clicks: Clicks = new Clicks();
+    public lines: Lines = new Lines();
     public context!: CanvasRenderingContext2D;
 
     private reqAnimFrame: number = 0;
@@ -93,6 +95,8 @@ class Game {
         this.clicks.Read(reader);
 
         this.level.UpdateGameObjects(reader);
+
+        this.lines.Read(reader);
 
         this.playersOnline = reader.readU(16);
     }
@@ -209,6 +213,8 @@ class Game {
             }
 
             this.clicks.Draw(c);
+            this.lines.Draw(c);
+            
             Player.Draw(c, this.playersList);
             this.mainPlayer.Draw(c);
         }
