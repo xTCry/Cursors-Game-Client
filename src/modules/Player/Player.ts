@@ -8,7 +8,7 @@ export default class Player {
     private _posLast: Point;
     private tick: number = 0;
 
-    constructor(pos: Point, id: number, color: string) {
+    constructor(pos: Point, id: number, color: string = 'white') {
         this._pos = this._posLast = pos;
         this.PlayerID = id;
         this.color = color;
@@ -97,7 +97,7 @@ function Linear(a: number): number {
 
 export function checkCollision(x: number, y: number) {
     if (!game.isStartedGame) return false;
-    return 0 > x || 400 <= x || 0 > y || 300 <= y;
+    return 0 > x || 400 <= x || 0 > y || 300 <= y? true : game.level.wallCollision[x + 400 * y]
 }
 
 export function checkPos(firstX: number, firstY: number, secondX: number, secondY: number) {

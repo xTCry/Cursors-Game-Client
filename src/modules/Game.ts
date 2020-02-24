@@ -10,8 +10,8 @@ import { isOldClient } from '../tools/Helpers';
 
 class Game {
     public mainPlayer: MainPlayer = new MainPlayer();
-    public clicks: Clicks = new Clicks();
     public level: Level = new Level();
+    public clicks: Clicks = new Clicks();
     public context!: CanvasRenderingContext2D;
 
     private reqAnimFrame: number = 0;
@@ -71,7 +71,7 @@ class Game {
                       .readU(32)
                       .toString(16)
                       .padStart(6, '0')}`
-                : 'black';
+                : 'white';
 
             if (this.mainPlayer.PlayerID !== id) {
                 if (this.playersList[id]) {
@@ -91,6 +91,8 @@ class Game {
         }
 
         this.clicks.Read(reader);
+
+        this.level.UpdateGameObjects(reader);
 
         this.playersOnline = reader.readU(16);
     }

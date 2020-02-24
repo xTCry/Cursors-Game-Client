@@ -14,6 +14,10 @@ export enum ServerMsg {
 
 export enum EGameObjectType {
     TEXT = 0,
+    WALL,
+    TELEPORT,
+    AREA_COUNTER,
+    BUTTON,
 }
 
 export interface Point {
