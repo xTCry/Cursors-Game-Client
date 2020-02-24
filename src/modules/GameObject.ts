@@ -31,6 +31,9 @@ export abstract class GameObject {
             case EGameObjectType.AREA_COUNTER:
                 return (obj || new AreaCounterObject(id)).Read(reader);
 
+            case EGameObjectType.BUTTON:
+                return (obj || new ButtonObject(id)).Read(reader);
+
             default:
                 throw Error(`Unknown object type [${type}]`);
         }
@@ -218,6 +221,101 @@ export class AreaCounterObject extends GameObject {
         } else {
             c.font = '60px GGAM';
             c.fillText(text, x + w / 2 - c.measureText(text).width / 2, y + h / 2 + 20);
+        }
+
+        c.globalAlpha = 1;
+    }
+}
+
+export class ButtonObject extends GameObject {
+    private pos: Point = { x: 0, y: 0 };
+    private size: Point = { x: 0, y: 0 };
+    private count: number = 0;
+    private color: string = 'green';
+    private lastClickAt: number = 0;
+
+    constructor(id: number) {
+        super(id, EGameObjectType.WALL);
+    }
+
+    Read(reader: BufferReader) {
+        this.pos.x = reader.readU(16);
+        this.pos.y = reader.readU(16);
+        this.size.x = reader.readU(16);
+        this.size.y = reader.readU(16);
+
+        const count = reader.readU(16);
+        if (this.count) {
+            if (this.count > count) {
+                this.lastClickAt = game.frameTick;
+            } else {
+                this.lastClickAt = 0;
+            }
+        }
+
+        this.count = count;
+        this.color = GameObject.ReadColor(reader);
+
+        return this;
+    }
+
+    Draw(c: CanvasRenderingContext2D) {
+        let [x, y] = [this.pos.x << 1, this.pos.y << 1];
+        let [w, h] = [this.size.x << 1, this.size.y << 1];
+        let text = `${this.count}`;
+
+        c.fillStyle = this.color;
+        c.strokeStyle = this.color;
+        c.globalAlpha = 1;
+        c.fillRect(x, y, w, h);
+        c.globalAlpha = 0.2;
+        c.fillStyle = '#000000';
+        c.fillRect(x, y, w, h);
+        c.globalAlpha = 1;
+        c.fillStyle = this.color;
+
+        const isClicking = 150 > game.frameTick - this.lastClickAt;
+        const sizeSBox = isClicking ? 8 : 12;
+
+        c.fillRect(x + sizeSBox, y + sizeSBox, w - 2 * sizeSBox, h - 2 * sizeSBox);
+        c.strokeStyle = '#000000';
+        c.globalAlpha = 0.1;
+        c.beginPath();
+        c.moveTo(x, y);
+        c.lineTo(x + sizeSBox, y + sizeSBox);
+        c.moveTo(x + w, y);
+        c.lineTo(x + w - sizeSBox, y + sizeSBox);
+        c.moveTo(x, y + h);
+        c.lineTo(x + sizeSBox, y + h - sizeSBox);
+        c.moveTo(x + w, y + h);
+        c.lineTo(x + w - sizeSBox, y + h - sizeSBox);
+        c.moveTo(x, y);
+        c.rect(x, y, w, h);
+        c.rect(x + sizeSBox, y + sizeSBox, w - 2 * sizeSBox, h - 2 * sizeSBox);
+        c.stroke();
+        c.fillStyle = '#000000';
+        c.globalAlpha = 0.5;
+
+        if (40 > this.size.x || 40 > this.size.y) {
+            c.font = '30px GGAM';
+            c.fillText(text, x + w / 2 - c.measureText(text).width / 2, y + h / 2 + 10);
+        } else {
+            c.font = '60px GGAM';
+            c.fillText(text, x + w / 2 - c.measureText(text).width / 2, y + h / 2 + 20);
+        }
+
+        if (50 > this.size.x || 50 > this.size.y) {
+            c.font = '35px GGAM';
+            c.fillText(text, x + w / 2 - c.measureText(text).width / 2, y + h / 2 + 13);
+        } else {
+            c.font = '45px GGAM';
+            c.fillText(text, x + w / 2 - c.measureText(text).width / 2, y + h / 2 + 16);
+        }
+
+        if (isClicking) {
+            c.fillStyle = '#000000';
+            c.globalAlpha = 0.15;
+            c.fillRect(x + sizeSBox, y + sizeSBox, w - 2 * sizeSBox, h - 2 * sizeSBox);
         }
 
         c.globalAlpha = 1;
