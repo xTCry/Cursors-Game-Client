@@ -25,6 +25,7 @@ class Game {
     public playersList: IPlayersList = {};
     public sync: number = 0;
     public isStartedGame: boolean = false;
+    public isMouseDown: boolean = false;
 
     Send(data: ArrayBuffer) {
         webSocket.Send(data);
@@ -117,6 +118,7 @@ class Game {
     ResetData() {
         this.level.Reset();
         this.clicks.Reset();
+        this.lines.Reset();
     }
 
     OnMouseMove = (e: MouseEvent) => {
@@ -128,7 +130,9 @@ class Game {
 
         if (!this.isStartedGame) return;
 
-        // TODO: check draw and pos
+        if (this.isMouseDown) {
+            this.lines.OnDraw();
+        }
     };
 
     OnMouseDown = (e: MouseEvent) => {
@@ -140,6 +144,11 @@ class Game {
             }
 
             this.SendMousePos();
+        }
+        else if((e.ctrlKey || e.shiftKey)) {
+            this.OnMouseMove(e);
+            this.isMouseDown = true;
+            this.lines.UpdatePos();
         } else if (
             this.clicks.check &&
             this.mainPlayer.posXghost === this.mainPlayer.posXplayer &&
@@ -148,6 +157,10 @@ class Game {
             this.clicks.Add(this.mainPlayer.posXplayer, this.mainPlayer.posYplayer);
             this.SendClick(this.mainPlayer.posXplayer, this.mainPlayer.posYplayer);
         }
+    };
+
+    OnMouseUp = () => {
+        this.isMouseDown = false;
     };
 
     SetContext(context: CanvasRenderingContext2D) {

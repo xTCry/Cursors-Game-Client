@@ -17,6 +17,7 @@ class DesktopContainer extends Component {
 
         this.canvas.addEventListener('mousemove', game.OnMouseMove);
         this.canvas.addEventListener('mousedown', game.OnMouseDown);
+        this.canvas.addEventListener('mouseup', game.OnMouseUp);
         this.canvas.addEventListener('contextmenu', e => e.preventDefault());
     }
 

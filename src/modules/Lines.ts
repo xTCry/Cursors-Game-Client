@@ -1,11 +1,16 @@
-import { BufferReader } from '../tools/Buffer';
+import { BufferReader, BufferWriter } from '../tools/Buffer';
 import game from './Game';
+import { ClientMsg } from '../Types';
+import webSocket from './WebSocket';
 
+type IPoint = [number, number];
 type ILine = [number, number, number, number];
 type ILineTick = [number, number, number, number, number];
 
 export default class Lines {
     private points: Array<ILineTick> = [];
+    private timeDraw: number = 0;
+    private posDown: IPoint = [0, 0];
 
     public Read(reader: BufferReader) {
         const linesCounts = reader.readU16();
@@ -48,5 +53,30 @@ export default class Lines {
 
     public Reset() {
         this.points = [];
+    }
+
+    public UpdatePos() {
+        this.posDown = [game.mainPlayer.posXplayer, game.mainPlayer.posYplayer];
+    }
+
+    public OnDraw() {
+        const [downX, downY] = this.posDown;
+        const [playerX, playerY] = [game.mainPlayer.posXplayer, game.mainPlayer.posYplayer];
+
+        if ((downX !== playerX || downY !== playerY) && 50 < game.frameTick - this.timeDraw) {
+            if (webSocket.readyState === WebSocket.OPEN) {
+                const fastBuff = BufferWriter.fast([
+                    [ClientMsg.DRAW],
+                    [downX, 16],
+                    [downY, 16],
+                    [playerX, 16],
+                    [playerY, 16],
+                ]);
+                game.Send(fastBuff);
+            }
+
+            this.UpdatePos();
+            this.timeDraw = game.frameTick;
+        }
     }
 }
