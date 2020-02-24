@@ -5,10 +5,13 @@ import webSocket from './WebSocket';
 import Player from './Player/Player';
 import MainPlayer from './Player/MainPlayer';
 import Clicks from './Clicks';
+import Level from './Level';
+import { isOldClient } from '../tools/Helpers';
 
 class Game {
     public mainPlayer: MainPlayer = new MainPlayer();
     public clicks: Clicks = new Clicks();
+    public level: Level = new Level();
     public context!: CanvasRenderingContext2D;
 
     private reqAnimFrame: number = 0;
@@ -19,7 +22,6 @@ class Game {
     public playersList: IPlayersList = {};
     public sync: number = 0;
     public isStartedGame: boolean = false;
-
 
     Send(data: ArrayBuffer) {
         webSocket.Send(data);
@@ -46,6 +48,10 @@ class Game {
                 this.OnUpdateData(reader);
                 break;
 
+            case ServerMsg.LOAD_LEVEL:
+                this.OnLevelLoad(reader);
+                break;
+
             case ServerMsg.TELEPORT_CLIENT:
                 this.mainPlayer.SetMainPosition(reader.readU(16), reader.readU(16));
                 this.sync = reader.readU(32);
@@ -56,20 +62,21 @@ class Game {
     OnUpdateData(reader: BufferReader) {
         const pCount = reader.readU(16);
 
-        let playerIDs = Object.keys(this.playersList).map(Number);
-
+        let playersID = Object.keys(this.playersList).map(Number);
         for (let i = 0; i < pCount; i++) {
             const id = reader.readU(32);
             const pos = { x: reader.readU(16), y: reader.readU(16) };
-            const color = `#${reader
-                .readU(32)
-                .toString(16)
-                .padStart(6, '0')}`;
+            const color = !isOldClient
+                ? `#${reader
+                      .readU(32)
+                      .toString(16)
+                      .padStart(6, '0')}`
+                : 'black';
 
             if (this.mainPlayer.PlayerID !== id) {
                 if (this.playersList[id]) {
                     // TODO: correct this ↓
-                    playerIDs = playerIDs.filter(e => e !== id);
+                    playersID = playersID.filter(e => e !== id);
 
                     const player = this.playersList[id];
                     player.UpdatePos(pos);
@@ -79,14 +86,30 @@ class Game {
                 }
             }
         }
-
-        for (const id of playerIDs) {
+        for (const id of playersID) {
             delete this.playersList[id];
         }
 
         this.clicks.Read(reader);
 
         this.playersOnline = reader.readU(16);
+    }
+
+    OnLevelLoad(reader: BufferReader) {
+        this.ResetData();
+
+        this.mainPlayer.SetMainPosition(reader.readU(16), reader.readU(16));
+
+        this.level.LoadObjects(reader);
+
+        this.sync = Math.max(this.sync, reader.readU(32));
+
+        this.mainPlayer.CursorMove();
+    }
+
+    ResetData() {
+        this.level.Reset();
+        this.clicks.Reset();
     }
 
     OnMouseMove = (e: MouseEvent) => {
@@ -167,13 +190,9 @@ class Game {
             this.clicks.Draw(c);
             this.mainPlayer.Draw(c, false);
         } else {
-            c.fillStyle = "#000000";
-            c.save();
-            c.globalAlpha = 1;
-            
-            // TODO: Draw objects
+            c.fillStyle = '#000000';
 
-		    c.restore();
+            this.level.Draw(c);
 
             let tempText = '';
             if (this.playersOnline > 0) {

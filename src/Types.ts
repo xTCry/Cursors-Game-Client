@@ -1,4 +1,4 @@
-import Player from "./modules/Player/Player";
+import Player from './modules/Player/Player';
 
 export enum ClientMsg {
     MOVE = 1,
@@ -8,7 +8,12 @@ export enum ClientMsg {
 export enum ServerMsg {
     SET_CLIENT_ID = 0,
     UPDATE_DATA = 1,
+    LOAD_LEVEL = 4,
     TELEPORT_CLIENT = 5,
+}
+
+export enum EGameObjectType {
+    TEXT = 0,
 }
 
 export interface Point {

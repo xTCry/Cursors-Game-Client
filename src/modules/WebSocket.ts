@@ -1,5 +1,6 @@
 import { w3cwebsocket as WS, ICloseEvent } from 'websocket';
 import { EventEmitter } from 'events';
+import { isOldClient } from '../tools/Helpers';
 
 declare interface WebSocket {
     on(event: 'onOpen', listener: (name: WS) => void): this;
@@ -74,5 +75,5 @@ class WebSocket extends EventEmitter {
     }
 }
 
-const webSocket = new WebSocket();
+const webSocket = new WebSocket(isOldClient ? 'ws://157.245.234.173:2828/' : void 0);
 export { WebSocket, webSocket as default };

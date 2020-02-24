@@ -68,6 +68,11 @@ export default class Clicks {
         c.restore();
     }
 
+    public Reset() {
+        this.points = [];
+        this.locals = [];
+    }
+
     public get check() {
         return game.frameTick - this.tick > 100;
     }
