@@ -28,6 +28,7 @@ class Game {
     public isMouseDown: boolean = false;
     public isMouseLocked: boolean = false;
     public noCursorLock: boolean = false;
+    public noDrawings: boolean = false;
 
     Send(data: ArrayBuffer) {
         webSocket.Send(data);
@@ -170,7 +171,7 @@ class Game {
             }
 
             this.SendMousePos();
-        } else if (e.ctrlKey || e.shiftKey) {
+        } else if ((e.ctrlKey || e.shiftKey) && !this.noDrawings) {
             this.OnMouseMove(e);
             this.isMouseDown = true;
             this.lines.UpdatePos();
@@ -190,7 +191,11 @@ class Game {
 
     OnNoCursorLock = () => {
         this.noCursorLock = !this.noCursorLock;
-    }
+    };
+
+    OnNoDrawings = () => {
+        this.noDrawings = !this.noDrawings;
+    };
 
     // Override
     IsMouseLock = (): boolean => false;
@@ -278,7 +283,9 @@ class Game {
             }
 
             this.clicks.Draw(c);
-            this.lines.Draw(c);
+            if (!this.noDrawings) {
+                this.lines.Draw(c);
+            }
 
             Player.Draw(c, this.playersList);
             this.mainPlayer.Draw(c);

@@ -37,6 +37,10 @@ class DesktopContainer extends Component {
                         <input type="checkbox" defaultChecked={game.noCursorLock} onChange={game.OnNoCursorLock} />
                         No cursor lock
                     </label>
+                    <label>
+                        <input type="checkbox" defaultChecked={game.noDrawings} onChange={game.OnNoDrawings} />
+                        Disable drawings
+                    </label>
                 </div>
             </>
         );
