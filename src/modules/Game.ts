@@ -26,6 +26,7 @@ class Game {
     public sync: number = 0;
     public isStartedGame: boolean = false;
     public isMouseDown: boolean = false;
+    public isMouseLocked: boolean = false;
 
     Send(data: ArrayBuffer) {
         webSocket.Send(data);
@@ -122,13 +123,25 @@ class Game {
     }
 
     OnMouseMove = (e: MouseEvent) => {
-        const { offsetX, offsetY } = e;
-        this.mainPlayer.SetPosition(offsetX, offsetY);
+        if (this.IsMouseLock()) {
+            //@ts-ignore
+            const _X = e.webkitMovementX || e.mozMovementX || e.movementX || 0;
+            //@ts-ignore
+            const _Y = e.webkitMovementY || e.mozMovementY || e.movementY || 0;
+            if (300 > Math.abs(_X) + Math.abs(_Y)) {
+                this.mainPlayer.SetPosition(this.mainPlayer.posXlocal + _X, this.mainPlayer.posYlocal + _Y);
+            }
+        } else {
+            const { offsetX, offsetY } = e;
+            this.mainPlayer.SetPosition(offsetX, offsetY);
+        }
 
         this.mainPlayer.CursorMove();
         // TODO: check collision
 
         if (!this.isStartedGame) return;
+
+        this.mainPlayer.FixPosition();
 
         if (this.isMouseDown) {
             this.lines.OnDraw();
@@ -136,6 +149,18 @@ class Game {
     };
 
     OnMouseDown = (e: MouseEvent) => {
+        if (this.IsMouseLock()) {
+            if (!this.isMouseLocked) {
+                this.isMouseLocked = true;
+                this.mainPlayer.SetMainPosition(this.mainPlayer.posXplayer, this.mainPlayer.posYplayer);
+            }
+        } else {
+            this.isMouseLocked = false;
+            if (true) {
+                this.RequestPointLock();
+            }
+        }
+
         if (!this.isStartedGame) {
             this.isStartedGame = true;
 
@@ -144,8 +169,7 @@ class Game {
             }
 
             this.SendMousePos();
-        }
-        else if((e.ctrlKey || e.shiftKey)) {
+        } else if (e.ctrlKey || e.shiftKey) {
             this.OnMouseMove(e);
             this.isMouseDown = true;
             this.lines.UpdatePos();
@@ -163,9 +187,14 @@ class Game {
         this.isMouseDown = false;
     };
 
+    // Override
+    IsMouseLock = (): boolean => false;
+
+    // Override
+    RequestPointLock = () => {};
+
     SetContext(context: CanvasRenderingContext2D) {
         this.context = context;
-        this.StartRender();
     }
 
     StartRender() {

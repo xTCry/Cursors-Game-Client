@@ -74,8 +74,41 @@ export default class MainPlayer {
         }
     }
 
+    FixPosition() {
+        if (game.IsMouseLock() && (this.posXghost !== this.posXplayer || this.posYghost !== this.posYplayer)) {
+            const b = this.posXghost > this.posXplayer ? 1 : 0;
+            const a = this.posYghost > this.posYplayer ? 1 : 0;
+
+            this.posXghost = this.posXplayer;
+            this.posYghost = this.posYplayer;
+
+            this.posXlocal = (this.posXghost << 1) + b;
+            this.posYlocal = (this.posYghost << 1) + a;
+        }
+    }
+
     Draw(c: CanvasRenderingContext2D, drawAreaGlow: boolean = true) {
-        const [x, y] = [this.posXplayer << 1, this.posYplayer << 1];
+        let [x, y] = [this.posXplayer << 1, this.posYplayer << 1];
+
+        if (this.posXghost !== this.posXplayer || this.posYghost !== this.posYplayer) {
+            c.save();
+
+            if (drawAreaGlow) {
+                c.globalAlpha = 0.2;
+                c.fillStyle = '#FF0000';
+                c.beginPath();
+                c.arc(this.posXlocal + 2, this.posYlocal + 8, 20, 0, 2 * Math.PI, false);
+                c.fill();
+            }
+
+            c.globalAlpha = 0.5;
+            new CursorDraw({ x: this.posXlocal - 5, y: this.posYlocal - 5 }, 'white').Draw(c);
+
+            c.restore();
+        } else {
+            x += this.posXlocal & 1;
+            y += this.posYlocal & 1;
+        }
 
         c.save();
 
