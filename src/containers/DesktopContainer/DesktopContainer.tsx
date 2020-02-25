@@ -28,9 +28,17 @@ class DesktopContainer extends Component {
 
     render() {
         return (
-            <div className={'canvasContainer'}>
-                <canvas className={'canvas'} ref={ref => (this.canvas = ref!)}></canvas>
-            </div>
+            <>
+                <div className={'canvasContainer'}>
+                    <canvas className={'canvas'} ref={ref => (this.canvas = ref!)}></canvas>
+                </div>
+                <div className={'controls'}>
+                    <label>
+                        <input type="checkbox" defaultChecked={game.noCursorLock} onChange={game.OnNoCursorLock} />
+                        No cursor lock
+                    </label>
+                </div>
+            </>
         );
     }
 }

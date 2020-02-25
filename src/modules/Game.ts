@@ -27,6 +27,7 @@ class Game {
     public isStartedGame: boolean = false;
     public isMouseDown: boolean = false;
     public isMouseLocked: boolean = false;
+    public noCursorLock: boolean = false;
 
     Send(data: ArrayBuffer) {
         webSocket.Send(data);
@@ -156,7 +157,7 @@ class Game {
             }
         } else {
             this.isMouseLocked = false;
-            if (true) {
+            if (!this.noCursorLock) {
                 this.RequestPointLock();
             }
         }
@@ -186,6 +187,10 @@ class Game {
     OnMouseUp = () => {
         this.isMouseDown = false;
     };
+
+    OnNoCursorLock = () => {
+        this.noCursorLock = !this.noCursorLock;
+    }
 
     // Override
     IsMouseLock = (): boolean => false;
