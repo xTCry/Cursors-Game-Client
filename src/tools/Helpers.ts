@@ -1,4 +1,4 @@
-export const isOldClient = process.env.MODE === 'io' || true;
+export const isOldClient = process.env.REACT_APP_MODE === 'io';
 
 export const SetRequestPointerLock = (e: any) => {
     e.requestPointerLock = e.requestPointerLock || e.mozRequestPointerLock || e.webkitRequestPointerLock;

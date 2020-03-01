@@ -75,5 +75,5 @@ class WebSocket extends EventEmitter {
     }
 }
 
-const webSocket = new WebSocket(isOldClient ? 'ws://157.245.234.173:2828/' : void 0);
+const webSocket = new WebSocket(isOldClient ? process.env.REACT_APP_WS_URL : void 0);
 export { WebSocket, webSocket as default };
