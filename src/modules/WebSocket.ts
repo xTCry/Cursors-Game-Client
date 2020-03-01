@@ -67,7 +67,9 @@ class WebSocket extends EventEmitter {
     }
 
     public Send(data: ArrayBuffer) {
-        this.ws?.send(data);
+        if (this.ws?.readyState === WS.OPEN) {
+            this.ws.send(data);
+        }
     }
 
     public get readyState(): number {
