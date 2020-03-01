@@ -1,6 +1,6 @@
 import { BufferReader } from '../tools/Buffer';
 import { EGameObjectType, Point } from '../Types';
-import { isOldClient } from '../tools/Helpers';
+import { isCursorsIO_Mode } from '../tools/Helpers';
 import game from './Game';
 
 export abstract class GameObject {
@@ -50,7 +50,7 @@ export abstract class GameObject {
         let res = '',
             charCode = 0;
 
-        if (isOldClient) {
+        if (isCursorsIO_Mode) {
             let byte = 0;
             while ((byte = reader.readU()) !== 0) {
                 charCode <<= 8;
@@ -92,7 +92,7 @@ export class TextObject extends GameObject {
 
         this.size = reader.readU();
         this.isCenter = !!reader.readU();
-        if (!isOldClient) {
+        if (!isCursorsIO_Mode) {
             this.color = GameObject.ReadColor(reader);
         }
         this.text = GameObject.ReadText(reader);

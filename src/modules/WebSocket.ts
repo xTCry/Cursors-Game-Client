@@ -1,6 +1,6 @@
 import { w3cwebsocket as WS, ICloseEvent } from 'websocket';
 import { EventEmitter } from 'events';
-import { isOldClient } from '../tools/Helpers';
+import { isCursorsIO_Mode } from '../tools/Helpers';
 
 declare interface WebSocket {
     on(event: 'onOpen', listener: (name: WS) => void): this;
@@ -77,5 +77,5 @@ class WebSocket extends EventEmitter {
     }
 }
 
-const webSocket = new WebSocket(isOldClient ? process.env.REACT_APP_WS_URL : void 0);
+const webSocket = new WebSocket(isCursorsIO_Mode ? process.env.REACT_APP_WS_URL_IO : process.env.REACT_APP_WS_URL);
 export { WebSocket, webSocket as default };

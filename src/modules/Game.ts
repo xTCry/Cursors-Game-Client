@@ -6,7 +6,7 @@ import Player from './Player/Player';
 import MainPlayer from './Player/MainPlayer';
 import Clicks from './Clicks';
 import Level from './Level';
-import { isOldClient } from '../tools/Helpers';
+import { isCursorsIO_Mode } from '../tools/Helpers';
 import Lines from './Lines';
 
 class Game {
@@ -73,7 +73,7 @@ class Game {
         for (let i = 0; i < pCount; i++) {
             const id = reader.readU(32);
             const pos = { x: reader.readU(16), y: reader.readU(16) };
-            const color = !isOldClient
+            const color = !isCursorsIO_Mode
                 ? `#${reader
                       .readU(32)
                       .toString(16)
